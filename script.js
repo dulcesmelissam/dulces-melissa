@@ -2,6 +2,7 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbwzZ3FQ-AfE4r9HgvSdsHCY
 
 let allProducts  = [];
 let activeFilter = 'all';
+let searchQuery  = '';
 let lastLoadTime = 0;
 
 document.addEventListener('DOMContentLoaded', loadProducts);
@@ -33,14 +34,24 @@ function loadProducts() {
     });
 }
 
+function setSearchQuery(value) {
+  searchQuery = value.trim().toLowerCase();
+  renderCatalog();
+}
+
 function renderCatalog() {
   const container = document.getElementById('catalogContainer');
-  const list = activeFilter === 'all'
+  let list = activeFilter === 'all'
     ? allProducts
     : allProducts.filter(p => p.categoria === activeFilter);
 
+  if (searchQuery) {
+    list = list.filter(p => p.nombre.toLowerCase().includes(searchQuery));
+  }
+
   if (list.length === 0) {
-    container.innerHTML = '<p style="text-align:center;padding:70px 20px;color:var(--text-light);font-size:1rem">No hay productos en esta categoría.</p>';
+    const msg = searchQuery ? 'No se encontraron productos.' : 'No hay productos en esta categoría.';
+    container.innerHTML = `<p style="text-align:center;padding:70px 20px;color:var(--text-light);font-size:1rem">${msg}</p>`;
     return;
   }
 
