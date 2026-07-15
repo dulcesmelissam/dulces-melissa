@@ -237,7 +237,7 @@ function renderCard(p, idx = 0) {
   }
 
   return `
-    <article class="product-card" id="card-${p.id}" data-stock="${p.stockCajas != null ? p.stockCajas : ''}" style="animation-delay:${idx * 0.05}s">
+    <article class="product-card" id="card-${p.id}" style="animation-delay:${idx * 0.05}s">
       <div class="product-img-wrap">
         ${imgHtml}
         ${placeholder}
@@ -253,7 +253,7 @@ function renderCard(p, idx = 0) {
         <div class="card-qty-stepper">
           <button class="cart-qty-btn" onclick="event.stopPropagation();changeCardQty(this,-1)" aria-label="Restar unidad">−</button>
           <span class="card-qty-value">1</span>
-          <button class="cart-qty-btn" onclick="event.stopPropagation();changeCardQty(this,1)" aria-label="Sumar unidad">+</button>
+          <button class="cart-qty-btn card-qty-plus" onclick="event.stopPropagation();changeCardQty(this,1)" aria-label="Sumar unidad">+</button>
         </div>
         <button class="btn-add" onclick="event.stopPropagation();addToCart('${p.id}', this)">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
@@ -335,43 +335,56 @@ function cartCount() {
   return cart.reduce((sum, c) => sum + c.cantidad, 0);
 }
 
-function cardStockLimit(card) {
-  if (!card) return Infinity;
-  const raw = card.dataset.stock;
-  if (raw === '' || raw == null) return Infinity;
-  const n = parseInt(raw, 10);
-  return isNaN(n) ? Infinity : n;
+function getProductStock(id) {
+  const p = allProducts.find(p => p.id === id);
+  return (p && p.stockCajas != null) ? p.stockCajas : Infinity;
+}
+
+function cartQtyFor(id) {
+  const item = cart.find(c => c.id === id);
+  return item ? item.cantidad : 0;
 }
 
 function changeCardQty(btn, delta) {
   const card = btn.closest('.product-card');
   const wrap = btn.closest('.card-qty-stepper');
   const span = wrap && wrap.querySelector('.card-qty-value');
-  if (!span) return;
-  const max = cardStockLimit(card);
-  const qty = Math.min(max, Math.max(1, (parseInt(span.textContent, 10) || 1) + delta));
+  if (!span || !card) return;
+  const id = card.id.replace(/^card-/, '');
+  const stock = getProductStock(id);
+  const maxSelectable = stock === Infinity ? Infinity : Math.max(stock - cartQtyFor(id), 0);
+
+  if (maxSelectable === 0) {
+    showToast('Ya tienes todo el stock disponible de este producto en tu carrito', 'error');
+    return;
+  }
+
+  const qty = Math.min(maxSelectable, Math.max(1, (parseInt(span.textContent, 10) || 1) + delta));
   span.textContent = qty;
+
+  const plusBtn = wrap.querySelector('.card-qty-plus');
+  if (plusBtn) plusBtn.disabled = (maxSelectable !== Infinity && qty >= maxSelectable);
 }
 
 function addToCart(id, btn) {
   const product = allProducts.find(p => p.id === id);
   if (!product) return;
 
-  const card = btn && btn.closest('.product-card');
-  const max = cardStockLimit(card);
-  const qtySpan = card && card.querySelector('.card-qty-value');
-  const requested = qtySpan ? Math.max(1, parseInt(qtySpan.textContent, 10) || 1) : 1;
-
+  const stock = getProductStock(id);
   const existing = cart.find(c => c.id === id);
   const alreadyInCart = existing ? existing.cantidad : 0;
-  const available = max - alreadyInCart;
+  const available = stock === Infinity ? Infinity : stock - alreadyInCart;
 
   if (available <= 0) {
     showToast('No queda más stock disponible de este producto', 'error');
     return;
   }
 
-  const qty = Math.min(requested, available);
+  const card = btn && btn.closest('.product-card');
+  const qtySpan = card && card.querySelector('.card-qty-value');
+  const requested = qtySpan ? Math.max(1, parseInt(qtySpan.textContent, 10) || 1) : 1;
+  const qty = available === Infinity ? requested : Math.min(requested, available);
+
   if (existing) {
     existing.cantidad += qty;
   } else {
@@ -386,7 +399,11 @@ function addToCart(id, btn) {
   );
   bounceCard(id);
   shakeCartIcon();
-  if (qtySpan) qtySpan.textContent = 1;
+  if (qtySpan) {
+    qtySpan.textContent = 1;
+    const plusBtn = card.querySelector('.card-qty-plus');
+    if (plusBtn) plusBtn.disabled = (stock !== Infinity && cartQtyFor(id) >= stock);
+  }
 }
 
 function bounceCard(id) {
@@ -408,6 +425,15 @@ function shakeCartIcon() {
 function updateCartQty(id, delta) {
   const item = cart.find(c => c.id === id);
   if (!item) return;
+
+  if (delta > 0) {
+    const stock = getProductStock(id);
+    if (stock !== Infinity && item.cantidad >= stock) {
+      showToast(`Solo quedan ${stock} disponibles de este producto`, 'error');
+      return;
+    }
+  }
+
   item.cantidad += delta;
   if (item.cantidad <= 0) cart = cart.filter(c => c.id !== id);
   persistCart();
@@ -452,6 +478,8 @@ function renderCartDrawer() {
     const imgHtml = item.imagenUrl
       ? `<img class="cart-item-img" src="${driveImgUrl(item.imagenUrl)}" alt="${item.nombre}">`
       : `<div class="cart-item-img"></div>`;
+    const stock = getProductStock(item.id);
+    const atMax = stock !== Infinity && item.cantidad >= stock;
     return `
     <div class="cart-item">
       ${imgHtml}
@@ -461,7 +489,7 @@ function renderCartDrawer() {
         <div class="cart-item-qty">
           <button class="cart-qty-btn" onclick="updateCartQty('${item.id}',-1)" aria-label="Restar unidad">−</button>
           <span>${item.cantidad}</span>
-          <button class="cart-qty-btn" onclick="updateCartQty('${item.id}',1)" aria-label="Sumar unidad">+</button>
+          <button class="cart-qty-btn" onclick="updateCartQty('${item.id}',1)" aria-label="Sumar unidad" ${atMax ? 'disabled title="Sin más stock disponible"' : ''}>+</button>
         </div>
       </div>
       <button class="cart-item-remove" onclick="removeFromCart('${item.id}')" title="Quitar">

@@ -223,6 +223,18 @@ body {
 }
 .hero-btn-whatsapp:hover { background: var(--green); color: #fff; }
 
+.hero-flow-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: .82rem;
+  color: var(--text-mid);
+  max-width: 420px;
+  line-height: 1.5;
+  margin-bottom: 22px;
+}
+.hero-flow-note svg { flex-shrink: 0; color: var(--green); margin-top: 2px; }
+
 .hero-benefits { display: flex; gap: 30px; flex-wrap: wrap; margin-top: 6px; }
 
 .hero-benefit {
@@ -980,6 +992,7 @@ main {
   transition: var(--ease);
 }
 .cart-qty-btn:hover { border-color: var(--purple); background: var(--purple-pale); }
+.cart-qty-btn:disabled { opacity: .4; cursor: not-allowed; border-color: var(--purple-pale); background: var(--white); }
 
 .cart-item-remove {
   background: none;
@@ -1005,6 +1018,14 @@ main {
   font-size: 1.15rem;
   color: var(--purple-dark);
   font-weight: 700;
+}
+
+.cart-flow-note {
+  font-size: .78rem;
+  color: var(--text-light);
+  text-align: center;
+  line-height: 1.5;
+  margin-bottom: 12px;
 }
 
 .btn-whatsapp-order:disabled { opacity: .5; cursor: not-allowed; }
