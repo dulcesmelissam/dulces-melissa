@@ -237,7 +237,7 @@ function renderCard(p, idx = 0) {
   }
 
   return `
-    <article class="product-card" id="card-${p.id}" style="animation-delay:${idx * 0.05}s">
+    <article class="product-card" id="card-${p.id}" data-stock="${p.stockCajas != null ? p.stockCajas : ''}" style="animation-delay:${idx * 0.05}s">
       <div class="product-img-wrap">
         ${imgHtml}
         ${placeholder}
@@ -335,11 +335,21 @@ function cartCount() {
   return cart.reduce((sum, c) => sum + c.cantidad, 0);
 }
 
+function cardStockLimit(card) {
+  if (!card) return Infinity;
+  const raw = card.dataset.stock;
+  if (raw === '' || raw == null) return Infinity;
+  const n = parseInt(raw, 10);
+  return isNaN(n) ? Infinity : n;
+}
+
 function changeCardQty(btn, delta) {
+  const card = btn.closest('.product-card');
   const wrap = btn.closest('.card-qty-stepper');
   const span = wrap && wrap.querySelector('.card-qty-value');
   if (!span) return;
-  const qty = Math.max(1, (parseInt(span.textContent, 10) || 1) + delta);
+  const max = cardStockLimit(card);
+  const qty = Math.min(max, Math.max(1, (parseInt(span.textContent, 10) || 1) + delta));
   span.textContent = qty;
 }
 
@@ -347,12 +357,21 @@ function addToCart(id, btn) {
   const product = allProducts.find(p => p.id === id);
   if (!product) return;
 
-  let qty = 1;
   const card = btn && btn.closest('.product-card');
+  const max = cardStockLimit(card);
   const qtySpan = card && card.querySelector('.card-qty-value');
-  if (qtySpan) qty = Math.max(1, parseInt(qtySpan.textContent, 10) || 1);
+  const requested = qtySpan ? Math.max(1, parseInt(qtySpan.textContent, 10) || 1) : 1;
 
   const existing = cart.find(c => c.id === id);
+  const alreadyInCart = existing ? existing.cantidad : 0;
+  const available = max - alreadyInCart;
+
+  if (available <= 0) {
+    showToast('No queda más stock disponible de este producto', 'error');
+    return;
+  }
+
+  const qty = Math.min(requested, available);
   if (existing) {
     existing.cantidad += qty;
   } else {
@@ -361,7 +380,10 @@ function addToCart(id, btn) {
   persistCart();
   renderCartBadge();
   renderCartDrawer();
-  showToast(`Agregado al carrito ✓ (${qty})`, 'success');
+  showToast(
+    qty < requested ? `Solo agregamos ${qty} (stock limitado) ✓` : `Agregado al carrito ✓ (${qty})`,
+    qty < requested ? 'error' : 'success'
+  );
   bounceCard(id);
   shakeCartIcon();
   if (qtySpan) qtySpan.textContent = 1;
