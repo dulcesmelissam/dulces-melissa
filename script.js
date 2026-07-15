@@ -233,7 +233,8 @@ function renderCard(p, idx = 0) {
 
   const imgHtml = imgUrl
     ? `<img class="product-img" src="${imgUrl}" alt="${safeNombre}" loading="lazy"
-            onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+            onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
+            onclick="event.stopPropagation();openLightbox('${imgUrl}','${safeNombre}')">`
     : '';
 
   const placeholder = `<div class="product-img-placeholder" ${p.imagenUrl ? 'style="display:none"' : ''}></div>`;
@@ -555,4 +556,16 @@ function showToast(msg, type = '') {
   t.classList.remove('hidden');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.add('hidden'), 3200);
+}
+
+// ─── Lightbox de foto ───────────────────────────────────────────────────────
+function openLightbox(url, alt) {
+  const img = document.getElementById('lightboxImg');
+  img.src = url;
+  img.alt = alt || '';
+  document.getElementById('imageLightbox').classList.remove('hidden');
+}
+
+function closeLightbox() {
+  document.getElementById('imageLightbox').classList.add('hidden');
 }

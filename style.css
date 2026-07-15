@@ -892,6 +892,48 @@ main {
 
 .hidden { display: none !important; }
 
+/* ── Lightbox de foto de producto ─────────────────────────────────────────── */
+.image-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: rgba(20,10,20,.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  cursor: zoom-out;
+  animation: lightboxFadeIn .18s ease-out;
+}
+@keyframes lightboxFadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.image-lightbox img {
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.4);
+  object-fit: contain;
+}
+
+.lightbox-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,.15);
+  color: #fff;
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.product-img { cursor: zoom-in; }
+
 .modal-close {
   position: absolute;
   top: 16px;
@@ -1115,4 +1157,17 @@ main {
   /* 8. Volver al inicio: más chico, menos protagonismo */
   .back-to-home { font-size: .8rem; padding: 6px 4px; margin: 14px 16px 0; gap: 6px; }
   .back-to-home svg { width: 14px; height: 14px; }
+
+  /* 9. Catálogo en 2 columnas */
+  .products-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .product-name { font-size: .9rem; }
+  .product-desc { -webkit-line-clamp: 1; margin-bottom: 6px; }
+  .product-price { font-size: 1.1rem; }
+  .product-qty { font-size: .66rem; }
+  .stock-badge { font-size: .62rem; padding: 3px 8px; }
+  .card-qty-stepper { gap: 6px; margin-top: 6px; }
+  .card-qty-value { font-size: .78rem; min-width: 16px; }
+  .cart-qty-btn { width: 22px; height: 22px; font-size: .8rem; }
+  .btn-add { font-size: .72rem; padding: 8px; gap: 4px; }
+  .btn-add svg { width: 12px; height: 12px; }
 }

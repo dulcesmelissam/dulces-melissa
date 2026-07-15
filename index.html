@@ -7,7 +7,7 @@
   <link rel="icon" href="https://img.icons8.com/3d-fluency/94/christmas-candy.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=10">
+  <link rel="stylesheet" href="style.css?v=11">
 </head>
 <body>
   <!-- Header -->
@@ -199,9 +199,15 @@
     </div>
   </div>
 
+  <!-- Lightbox de foto -->
+  <div id="imageLightbox" class="image-lightbox hidden" onclick="closeLightbox()">
+    <button class="lightbox-close" aria-label="Cerrar">✕</button>
+    <img id="lightboxImg" src="" alt="">
+  </div>
+
   <!-- Toast -->
   <div id="toast" class="toast hidden"></div>
 
-  <script src="script.js?v=10"></script>
+  <script src="script.js?v=11"></script>
 </body>
 </html>
