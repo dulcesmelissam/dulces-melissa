@@ -743,7 +743,7 @@ main {
   grid-template-columns: 1fr 1fr;
   gap: 32px;
   align-items: center;
-  background: var(--white);
+  background: var(--cream);
   border-radius: var(--r);
   padding: 36px;
   box-shadow: var(--card-shadow);
