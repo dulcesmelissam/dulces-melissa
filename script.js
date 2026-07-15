@@ -41,6 +41,7 @@ function showView(view) {
   document.getElementById('searchBar').classList.toggle('hidden', view !== 'catalogo');
   location.hash = view === 'catalogo' ? 'catalogo' : 'inicio';
   window.scrollTo(0, 0);
+  if (view === 'catalogo') requestAnimationFrame(updateChipIndicator);
 }
 
 function navigateTo(target) {
