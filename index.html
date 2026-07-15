@@ -7,7 +7,7 @@
   <link rel="icon" href="https://img.icons8.com/3d-fluency/94/christmas-candy.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=13">
+  <link rel="stylesheet" href="style.css?v=14">
 </head>
 <body>
   <!-- Header -->
@@ -107,7 +107,7 @@
       </div>
       <p class="loading-text">Endulzando tu experiencia…</p>
     </div>
-    <div class="featured-carousel-wrap hidden" id="featuredCarouselWrap">
+    <div class="featured-carousel-wrap hidden" id="featuredCarouselWrap" onmouseenter="scheduleAutoplay()">
       <button class="carousel-arrow carousel-arrow-prev" onclick="carouselScroll(-1)" aria-label="Anterior">‹</button>
       <div class="featured-carousel" id="featuredCarousel"></div>
       <button class="carousel-arrow carousel-arrow-next" onclick="carouselScroll(1)" aria-label="Siguiente">›</button>
@@ -208,6 +208,6 @@
   <!-- Toast -->
   <div id="toast" class="toast hidden"></div>
 
-  <script src="script.js?v=13"></script>
+  <script src="script.js?v=14"></script>
 </body>
 </html>

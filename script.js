@@ -174,6 +174,8 @@ function renderFeatured(silent) {
   document.getElementById('featuredCarouselWrap').classList.remove('hidden');
   document.getElementById('carouselDots').classList.remove('hidden');
   document.getElementById('featuredCta').classList.remove('hidden');
+
+  scheduleAutoplay();
 }
 
 function renderCarouselDots(count) {
@@ -203,6 +205,29 @@ let carouselScrollTimer = null;
 function onCarouselScroll() {
   clearTimeout(carouselScrollTimer);
   carouselScrollTimer = setTimeout(updateCarouselDots, 80);
+  scheduleAutoplay();
+}
+
+let autoplayTimer = null;
+function scheduleAutoplay() {
+  clearTimeout(autoplayTimer);
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  autoplayTimer = setTimeout(() => {
+    advanceCarousel();
+    scheduleAutoplay();
+  }, 4500);
+}
+
+function advanceCarousel() {
+  if (currentView !== 'home' || document.hidden) return;
+  const track = document.getElementById('featuredCarousel');
+  if (!track) return;
+  const atEnd = track.scrollLeft + track.clientWidth >= track.scrollWidth - 4;
+  if (atEnd) {
+    track.scrollTo({ left: 0, behavior: 'smooth' });
+  } else {
+    carouselScroll(1);
+  }
 }
 
 function updateCarouselDots() {
