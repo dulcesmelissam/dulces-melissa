@@ -250,7 +250,12 @@ function renderCard(p, idx = 0) {
           <span class="product-price">$${Number(p.precio).toLocaleString('es-CL')}</span>
         </div>
         ${stockBadge}
-        <button class="btn-add" onclick="event.stopPropagation();addToCart('${p.id}')">
+        <div class="card-qty-stepper">
+          <button class="cart-qty-btn" onclick="event.stopPropagation();changeCardQty(this,-1)" aria-label="Restar unidad">−</button>
+          <span class="card-qty-value">1</span>
+          <button class="cart-qty-btn" onclick="event.stopPropagation();changeCardQty(this,1)" aria-label="Sumar unidad">+</button>
+        </div>
+        <button class="btn-add" onclick="event.stopPropagation();addToCart('${p.id}', this)">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
           Lo quiero
         </button>
@@ -330,21 +335,36 @@ function cartCount() {
   return cart.reduce((sum, c) => sum + c.cantidad, 0);
 }
 
-function addToCart(id) {
+function changeCardQty(btn, delta) {
+  const wrap = btn.closest('.card-qty-stepper');
+  const span = wrap && wrap.querySelector('.card-qty-value');
+  if (!span) return;
+  const qty = Math.max(1, (parseInt(span.textContent, 10) || 1) + delta);
+  span.textContent = qty;
+}
+
+function addToCart(id, btn) {
   const product = allProducts.find(p => p.id === id);
   if (!product) return;
+
+  let qty = 1;
+  const card = btn && btn.closest('.product-card');
+  const qtySpan = card && card.querySelector('.card-qty-value');
+  if (qtySpan) qty = Math.max(1, parseInt(qtySpan.textContent, 10) || 1);
+
   const existing = cart.find(c => c.id === id);
   if (existing) {
-    existing.cantidad++;
+    existing.cantidad += qty;
   } else {
-    cart.push({ id: product.id, nombre: product.nombre, precio: Number(product.precio), imagenUrl: product.imagenUrl, cantidad: 1 });
+    cart.push({ id: product.id, nombre: product.nombre, precio: Number(product.precio), imagenUrl: product.imagenUrl, cantidad: qty });
   }
   persistCart();
   renderCartBadge();
   renderCartDrawer();
-  showToast('Agregado al carrito ✓', 'success');
+  showToast(`Agregado al carrito ✓ (${qty})`, 'success');
   bounceCard(id);
   shakeCartIcon();
+  if (qtySpan) qtySpan.textContent = 1;
 }
 
 function bounceCard(id) {
