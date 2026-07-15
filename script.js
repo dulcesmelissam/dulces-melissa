@@ -7,9 +7,12 @@ let searchQuery       = '';
 let lastLoadTime     = 0;
 let bestSellerCodes  = [];
 let currentView      = 'home';
+let cart             = [];
+let lastCartCount    = 0;
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+  loadCart();
   loadProducts();
   loadBestSellers();
   updateSearchPlaceholder();
@@ -247,6 +250,10 @@ function renderCard(p, idx = 0) {
           <span class="product-price">$${Number(p.precio).toLocaleString('es-CL')}</span>
         </div>
         ${stockBadge}
+        <button class="btn-add" onclick="event.stopPropagation();addToCart('${p.id}')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+          Lo quiero
+        </button>
       </div>
     </article>`;
 }
@@ -298,6 +305,145 @@ function renderCatalogTransition() {
     renderCatalog();
     container.classList.remove('catalog-exiting');
   }, 220);
+}
+
+// ─── Carrito ──────────────────────────────────────────────────────────────────
+function loadCart() {
+  try {
+    const raw = localStorage.getItem('dulcesMelissaCart');
+    cart = raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    cart = [];
+  }
+  renderCartBadge();
+}
+
+function persistCart() {
+  localStorage.setItem('dulcesMelissaCart', JSON.stringify(cart));
+}
+
+function cartTotal() {
+  return cart.reduce((sum, c) => sum + c.precio * c.cantidad, 0);
+}
+
+function cartCount() {
+  return cart.reduce((sum, c) => sum + c.cantidad, 0);
+}
+
+function addToCart(id) {
+  const product = allProducts.find(p => p.id === id);
+  if (!product) return;
+  const existing = cart.find(c => c.id === id);
+  if (existing) {
+    existing.cantidad++;
+  } else {
+    cart.push({ id: product.id, nombre: product.nombre, precio: Number(product.precio), imagenUrl: product.imagenUrl, cantidad: 1 });
+  }
+  persistCart();
+  renderCartBadge();
+  renderCartDrawer();
+  showToast('Agregado al carrito ✓', 'success');
+  bounceCard(id);
+  shakeCartIcon();
+}
+
+function bounceCard(id) {
+  document.querySelectorAll('[id="card-' + id + '"]').forEach(card => {
+    card.classList.remove('card-bounce');
+    void card.offsetWidth;
+    card.classList.add('card-bounce');
+  });
+}
+
+function shakeCartIcon() {
+  const cartBtn = document.querySelector('.cart-btn');
+  if (!cartBtn) return;
+  cartBtn.classList.remove('cart-shake');
+  void cartBtn.offsetWidth;
+  cartBtn.classList.add('cart-shake');
+}
+
+function updateCartQty(id, delta) {
+  const item = cart.find(c => c.id === id);
+  if (!item) return;
+  item.cantidad += delta;
+  if (item.cantidad <= 0) cart = cart.filter(c => c.id !== id);
+  persistCart();
+  renderCartBadge();
+  renderCartDrawer();
+}
+
+function removeFromCart(id) {
+  cart = cart.filter(c => c.id !== id);
+  persistCart();
+  renderCartBadge();
+  renderCartDrawer();
+}
+
+function renderCartBadge() {
+  const badge = document.getElementById('cartBadge');
+  const count = cartCount();
+  badge.textContent = count;
+  badge.classList.toggle('hidden', count === 0);
+  if (count > lastCartCount) {
+    badge.classList.remove('bump');
+    void badge.offsetWidth;
+    badge.classList.add('bump');
+  }
+  lastCartCount = count;
+}
+
+function renderCartDrawer() {
+  const container   = document.getElementById('cartItemsContainer');
+  const totalEl      = document.getElementById('cartTotal');
+  const whatsappBtn  = document.getElementById('cartWhatsappBtn');
+
+  if (cart.length === 0) {
+    container.innerHTML = '<p class="cart-empty">Tu carrito está vacío.</p>';
+    totalEl.textContent = '$0';
+    whatsappBtn.disabled = true;
+    return;
+  }
+
+  whatsappBtn.disabled = false;
+  container.innerHTML = cart.map(item => {
+    const imgHtml = item.imagenUrl
+      ? `<img class="cart-item-img" src="${driveImgUrl(item.imagenUrl)}" alt="${item.nombre}">`
+      : `<div class="cart-item-img"></div>`;
+    return `
+    <div class="cart-item">
+      ${imgHtml}
+      <div class="cart-item-info">
+        <div class="cart-item-name">${item.nombre}</div>
+        <div class="cart-item-price">$${item.precio.toLocaleString('es-CL')} c/u</div>
+        <div class="cart-item-qty">
+          <button class="cart-qty-btn" onclick="updateCartQty('${item.id}',-1)" aria-label="Restar unidad">−</button>
+          <span>${item.cantidad}</span>
+          <button class="cart-qty-btn" onclick="updateCartQty('${item.id}',1)" aria-label="Sumar unidad">+</button>
+        </div>
+      </div>
+      <button class="cart-item-remove" onclick="removeFromCart('${item.id}')" title="Quitar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+      </button>
+    </div>`;
+  }).join('');
+
+  totalEl.textContent = '$' + cartTotal().toLocaleString('es-CL');
+}
+
+function toggleCartDrawer() {
+  const drawer  = document.getElementById('cartDrawer');
+  const overlay = document.getElementById('cartDrawerOverlay');
+  drawer.classList.toggle('hidden');
+  overlay.classList.toggle('hidden');
+  if (!drawer.classList.contains('hidden')) renderCartDrawer();
+}
+
+function sendCartToWhatsApp() {
+  if (cart.length === 0) return;
+  const lines = cart.map(item => `- ${item.cantidad}x ${item.nombre} ($${item.precio.toLocaleString('es-CL')} c/u)`);
+  const text = `Hola! Quiero hacer este pedido:\n${lines.join('\n')}\n\nTotal: $${cartTotal().toLocaleString('es-CL')}`;
+  window.open('https://wa.me/56949809843?text=' + encodeURIComponent(text), '_blank');
 }
 
 // ─── Scroll reveal ───────────────────────────────────────────────────────────
