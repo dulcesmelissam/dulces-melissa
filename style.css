@@ -19,6 +19,7 @@
   --card-hover:   0 10px 30px rgba(62,39,96,.14);
   --r:            14px;
   --ease:         .22s ease;
+  --ease-out:     cubic-bezier(.23,1,.32,1);
 }
 
 /* ── Base ───────────────────────────────────────────────────────────────────── */
@@ -29,6 +30,7 @@ body {
   background-size: 24px 24px;
   color: var(--text-dark);
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   overflow-x: hidden;
@@ -98,6 +100,7 @@ body {
   white-space: nowrap;
 }
 .nav-link:hover { color: var(--purple); border-color: var(--green); }
+.nav-link.active { color: var(--purple); border-color: var(--purple); }
 
 .header-actions { display: flex; align-items: center; gap: 14px; }
 
@@ -117,6 +120,7 @@ body {
   flex-shrink: 0;
 }
 .cart-btn:hover { border-color: var(--purple); background: var(--purple-pale); }
+.cart-btn:active { transform: scale(.94); }
 
 .cart-badge {
   position: absolute;
@@ -160,6 +164,7 @@ body {
 .hero {
   padding: 56px 24px 80px;
   min-height: calc(100vh - 90px);
+  min-height: calc(100dvh - 90px);
   display: flex;
   align-items: center;
 }
@@ -177,6 +182,13 @@ body {
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;
+  }
+  .cart-drawer, .toast {
+    transition: opacity .15s ease !important;
+    transform: none !important;
+  }
+  .cart-drawer-overlay, .image-lightbox {
+    transition: opacity .15s ease !important;
   }
 }
 
@@ -262,7 +274,6 @@ body {
   flex-shrink: 0;
   transition: var(--ease);
 }
-.hero-benefit:hover .hero-benefit-icon { border-color: rgba(91,58,142,.2); transform: translateY(-2px); }
 
 .hero-media { position: relative; margin-right: -28px; }
 @media (max-width: 900px) {
@@ -342,6 +353,7 @@ body {
   transition: var(--ease);
 }
 .carousel-arrow:hover { background: var(--purple); color: #fff; border-color: var(--purple); }
+.carousel-arrow:active { transform: scale(.92); }
 
 .carousel-dots { display: flex; justify-content: center; gap: 8px; margin: 6px 0 26px; }
 .carousel-dot {
@@ -431,6 +443,7 @@ body {
   font-weight: 700;
 }
 .mobile-nav-link:hover { color: var(--green-dark); }
+.mobile-nav-link.active { color: var(--purple); }
 
 .search-input {
   width: 100%;
@@ -486,10 +499,11 @@ body {
   font-family: 'Lato', sans-serif;
   font-size: .88rem;
   font-weight: 700;
-  transition: color .2s ease;
+  transition: color .2s ease, transform .16s var(--ease-out);
   white-space: nowrap;
   flex-shrink: 0;
 }
+.chip:active { transform: scale(.94); }
 .chip:hover { color: var(--purple); }
 .chip.active { color: #fff; }
 
@@ -560,6 +574,8 @@ main {
   background: var(--purple-pale);
 }
 
+.empty-state { text-align: center; padding: 70px 20px; color: var(--text-light); font-size: 1rem; }
+
 .products-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, 220px);
@@ -581,11 +597,6 @@ main {
   transition: opacity .45s ease, transform .25s ease-out, box-shadow .25s ease-out, border-color .25s ease-out;
 }
 .product-card.visible { opacity: 1; transform: translateY(0); }
-.product-card.visible:hover {
-  transform: translateY(-6px) scale(1.02);
-  box-shadow: var(--card-hover);
-  border-color: rgba(91,58,142,.14);
-}
 
 .product-img-wrap {
   width: 100%;
@@ -599,7 +610,6 @@ main {
 }
 
 .product-img { width: 100%; height: 100%; object-fit: cover; transition: transform .3s ease-out; }
-.product-card.visible:hover .product-img { transform: scale(1.05); }
 
 .product-img-placeholder {
   width: 100%;
@@ -644,6 +654,7 @@ main {
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--purple-dark);
+  font-variant-numeric: tabular-nums;
 }
 
 .stock-badge {
@@ -658,8 +669,8 @@ main {
   width: fit-content;
 }
 .stock-ok  { background: var(--green-pale); color: var(--green-dark); }
-.stock-low { background: #FFF1E0; color: #B36B00; }
-.stock-out { background: rgba(43,33,48,.06); color: var(--text-light); }
+.stock-low { background: #FFF1E0; color: #8a5200; }
+.stock-out { background: rgba(43,33,48,.06); color: var(--text-mid); }
 
 .card-qty-stepper {
   display: flex;
@@ -667,7 +678,7 @@ main {
   gap: 10px;
   margin-top: 14px;
 }
-.card-qty-value { min-width: 20px; text-align: center; font-weight: 700; font-size: .9rem; color: var(--text-dark); }
+.card-qty-value { min-width: 20px; text-align: center; font-weight: 700; font-size: .9rem; color: var(--text-dark); font-variant-numeric: tabular-nums; }
 
 .btn-add {
   display: flex;
@@ -687,8 +698,7 @@ main {
   font-size: .86rem;
   transition: filter .2s ease-out, transform .2s ease-out;
 }
-.btn-add:hover { filter: brightness(1.1); transform: translateY(-1px); }
-.product-card.visible:hover .btn-add { filter: brightness(1.05); }
+.btn-add:active { transform: scale(.97); }
 
 /* ── Loading ─────────────────────────────────────────────────────────────────── */
 .loading-spinner {
@@ -819,7 +829,7 @@ main {
   transition: var(--ease);
   z-index: 200;
 }
-.whatsapp-float:hover { transform: scale(1.1); box-shadow: 0 8px 28px rgba(37,211,102,.55); }
+.whatsapp-float:active { transform: scale(.95); }
 
 /* ── Buttons ─────────────────────────────────────────────────────────────────── */
 .btn-primary {
@@ -835,7 +845,7 @@ main {
   transition: var(--ease);
   white-space: nowrap;
 }
-.btn-primary:hover { background: var(--purple-dark); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(62,39,96,.25); }
+.btn-primary:active { transform: scale(.97); }
 
 .btn-secondary {
   background: transparent;
@@ -875,7 +885,7 @@ main {
   position: fixed;
   bottom: 170px;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) translateY(8px);
   background: var(--purple-dark);
   color: #fff;
   padding: 12px 26px;
@@ -884,9 +894,12 @@ main {
   font-weight: 700;
   z-index: 999;
   box-shadow: 0 4px 20px rgba(0,0,0,.25);
-  transition: opacity .3s;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s var(--ease-out), transform .25s var(--ease-out);
   white-space: nowrap;
 }
+.toast.open { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: all; }
 .toast.success { background: var(--green-dark); }
 .toast.error   { background: #c62828; }
 
@@ -903,9 +916,10 @@ main {
   justify-content: center;
   padding: 24px;
   cursor: zoom-out;
-  animation: lightboxFadeIn .18s ease-out;
+  opacity: 0;
+  transition: opacity .18s var(--ease-out);
 }
-@keyframes lightboxFadeIn { from { opacity: 0; } to { opacity: 1; } }
+.image-lightbox.open { opacity: 1; }
 
 .image-lightbox img {
   max-width: 100%;
@@ -940,8 +954,8 @@ main {
   right: 16px;
   background: var(--purple-pale);
   border: none;
-  width: 32px;
-  height: 32px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   cursor: pointer;
   font-size: .85rem;
@@ -958,8 +972,13 @@ main {
   position: fixed;
   inset: 0;
   background: rgba(43,33,48,.5);
+  backdrop-filter: blur(3px);
   z-index: 400;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .3s var(--ease-out);
 }
+.cart-drawer-overlay.open { opacity: 1; pointer-events: all; }
 
 .cart-drawer {
   position: fixed;
@@ -973,9 +992,10 @@ main {
   display: flex;
   flex-direction: column;
   box-shadow: -8px 0 30px rgba(43,33,48,.2);
-  transform: translateX(0);
-  transition: transform .3s ease;
+  transform: translateX(100%);
+  transition: transform .3s var(--ease-out);
 }
+.cart-drawer.open { transform: translateX(0); }
 
 .cart-drawer-header {
   display: flex;
@@ -1015,13 +1035,13 @@ main {
 
 .cart-item-info { flex: 1; min-width: 0; }
 .cart-item-name { font-weight: 700; font-size: .88rem; color: var(--text-dark); margin-bottom: 2px; }
-.cart-item-price { font-size: .8rem; color: var(--text-light); }
+.cart-item-price { font-size: .8rem; color: var(--text-light); font-variant-numeric: tabular-nums; }
 
 .cart-item-qty { display: flex; align-items: center; gap: 8px; }
 
 .cart-qty-btn {
-  width: 26px;
-  height: 26px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   border: 2px solid var(--purple-pale);
   background: var(--white);
@@ -1034,6 +1054,7 @@ main {
   transition: var(--ease);
 }
 .cart-qty-btn:hover { border-color: var(--purple); background: var(--purple-pale); }
+.cart-qty-btn:active:not(:disabled) { transform: scale(.88); }
 .cart-qty-btn:disabled { opacity: .4; cursor: not-allowed; border-color: var(--purple-pale); background: var(--white); }
 
 .cart-item-remove {
@@ -1059,6 +1080,7 @@ main {
   font-family: 'Playfair Display', serif;
   font-size: 1.15rem;
   color: var(--purple-dark);
+  font-variant-numeric: tabular-nums;
   font-weight: 700;
 }
 
@@ -1099,6 +1121,21 @@ main {
   .products-grid { grid-template-columns: 1fr; gap: 14px; }
   .catalog-box  { width: calc(100% - 24px); margin: 0 auto 40px; padding: 28px 16px 32px; border-radius: 24px; }
   main          { padding: 20px 0 0; }
+}
+
+/* ── Hovers de lift/scale, solo para puntero fino (evita que queden "pegados" al tocar) ── */
+@media (hover: hover) and (pointer: fine) {
+  .hero-benefit:hover .hero-benefit-icon { border-color: rgba(91,58,142,.2); transform: translateY(-2px); }
+  .product-card.visible:hover {
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: var(--card-hover);
+    border-color: rgba(91,58,142,.14);
+  }
+  .product-card.visible:hover .product-img { transform: scale(1.05); }
+  .btn-add:hover { filter: brightness(1.1); transform: translateY(-1px); }
+  .product-card.visible:hover .btn-add { filter: brightness(1.05); }
+  .whatsapp-float:hover { transform: scale(1.1); box-shadow: 0 8px 28px rgba(37,211,102,.55); }
+  .btn-primary:hover { background: var(--purple-dark); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(62,39,96,.25); }
 }
 
 /* ── Mobile catálogo: header, cards, espaciado (hasta 768px) ─────────────────── */
@@ -1144,7 +1181,7 @@ main {
   .product-footer { padding-top: 8px; }
   .stock-badge { margin-top: 6px; }
   .card-qty-stepper { margin-top: 8px; }
-  .btn-add { margin-top: 8px; padding: 9px; }
+  .btn-add { margin-top: 8px; padding: 12px 9px; }
 
   /* 7. Botón WhatsApp flotante: safe-area y menos intrusivo */
   .whatsapp-float {
@@ -1167,7 +1204,7 @@ main {
   .stock-badge { font-size: .62rem; padding: 3px 8px; }
   .card-qty-stepper { gap: 6px; margin-top: 6px; }
   .card-qty-value { font-size: .78rem; min-width: 16px; }
-  .cart-qty-btn { width: 22px; height: 22px; font-size: .8rem; }
-  .btn-add { font-size: .72rem; padding: 8px; gap: 4px; }
+  .cart-qty-btn { width: 30px; height: 30px; font-size: .8rem; }
+  .btn-add { font-size: .72rem; padding: 11px 8px; gap: 4px; }
   .btn-add svg { width: 12px; height: 12px; }
 }

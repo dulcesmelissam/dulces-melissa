@@ -42,6 +42,10 @@ function showView(view) {
   location.hash = view === 'catalogo' ? 'catalogo' : 'inicio';
   window.scrollTo(0, 0);
   if (view === 'catalogo') requestAnimationFrame(updateChipIndicator);
+  document.querySelectorAll('.nav-link, .mobile-nav-link').forEach(a => {
+    const t = a.dataset.target;
+    a.classList.toggle('active', view === 'catalogo' ? t === 'catalogo' : t === 'hero');
+  });
 }
 
 function navigateTo(target) {
@@ -123,7 +127,7 @@ function renderCatalog(silent) {
 
   if (list.length === 0) {
     const msg = searchQuery ? 'No se encontraron productos.' : 'No hay productos en esta categoría.';
-    container.innerHTML = `<p style="text-align:center;padding:70px 20px;color:var(--text-light);font-size:1rem">${msg}</p>`;
+    container.innerHTML = `<p class="empty-state">${msg}</p>`;
     return;
   }
 
@@ -543,9 +547,15 @@ function renderCartDrawer() {
 function toggleCartDrawer() {
   const drawer  = document.getElementById('cartDrawer');
   const overlay = document.getElementById('cartDrawerOverlay');
-  drawer.classList.toggle('hidden');
-  overlay.classList.toggle('hidden');
-  if (!drawer.classList.contains('hidden')) renderCartDrawer();
+  const opening = drawer.classList.contains('hidden');
+  if (opening) {
+    openOverlay(drawer);
+    openOverlay(overlay);
+    renderCartDrawer();
+  } else {
+    closeOverlay(drawer, 300);
+    closeOverlay(overlay, 300);
+  }
 }
 
 function sendCartToWhatsApp() {
@@ -572,15 +582,25 @@ function initScrollReveal() {
   });
 }
 
+// ─── Overlays (carrito, toast, lightbox) ───────────────────────────────────────
+function openOverlay(el) {
+  el.classList.remove('hidden');
+  requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('open')));
+}
+function closeOverlay(el, duration = 220) {
+  el.classList.remove('open');
+  setTimeout(() => el.classList.add('hidden'), duration);
+}
+
 // ─── Toast ────────────────────────────────────────────────────────────────────
 let toastTimer = null;
 function showToast(msg, type = '') {
   const t = document.getElementById('toast');
   t.textContent = msg;
-  t.className = 'toast' + (type ? ' ' + type : '');
-  t.classList.remove('hidden');
+  t.className = 'toast hidden' + (type ? ' ' + type : '');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.add('hidden'), 3200);
+  openOverlay(t);
+  toastTimer = setTimeout(() => closeOverlay(t, 250), 3200);
 }
 
 // ─── Lightbox de foto ───────────────────────────────────────────────────────
@@ -588,9 +608,9 @@ function openLightbox(url, alt) {
   const img = document.getElementById('lightboxImg');
   img.src = url;
   img.alt = alt || '';
-  document.getElementById('imageLightbox').classList.remove('hidden');
+  openOverlay(document.getElementById('imageLightbox'));
 }
 
 function closeLightbox() {
-  document.getElementById('imageLightbox').classList.add('hidden');
+  closeOverlay(document.getElementById('imageLightbox'), 180);
 }
