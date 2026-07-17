@@ -16,16 +16,24 @@ document.addEventListener('DOMContentLoaded', () => {
   loadProducts();
   loadBestSellers();
   updateSearchPlaceholder();
+  updateHeaderHeightVar();
   showView(location.hash === '#catalogo' ? 'catalogo' : 'home');
 });
 
 window.addEventListener('resize', updateSearchPlaceholder);
 window.addEventListener('resize', () => updateChipIndicator());
+window.addEventListener('resize', updateHeaderHeightVar);
 
 function updateSearchPlaceholder() {
   const input = document.getElementById('searchInput');
   if (!input) return;
   input.placeholder = window.innerWidth < 480 ? 'Buscar...' : '¿Qué se te antoja hoy?';
+}
+
+function updateHeaderHeightVar() {
+  const header = document.querySelector('.header');
+  if (!header) return;
+  document.documentElement.style.setProperty('--header-h', header.offsetHeight + 'px');
 }
 
 function toggleMobileNav() {
@@ -42,7 +50,7 @@ function showView(view) {
   location.hash = view === 'catalogo' ? 'catalogo' : 'inicio';
   window.scrollTo(0, 0);
   if (view === 'catalogo') requestAnimationFrame(updateChipIndicator);
-  document.querySelectorAll('.nav-link, .mobile-nav-link').forEach(a => {
+  document.querySelectorAll('.nav-link, .mobile-nav-link, .bottom-nav-item').forEach(a => {
     const t = a.dataset.target;
     a.classList.toggle('active', view === 'catalogo' ? t === 'catalogo' : t === 'hero');
   });
@@ -99,6 +107,7 @@ function loadBestSellers() {
     .then(res => {
       bestSellerCodes = res.ok ? res.data : [];
       renderFeatured();
+      if (currentView === 'catalogo') renderCatalog(true);
     })
     .catch(() => { renderFeatured(); });
 }
@@ -132,14 +141,18 @@ function renderCatalog(silent) {
   }
 
   const cats = [...new Set(list.map(p => p.categoria))];
-  container.innerHTML = cats.map(cat => `
+  const bestsellerIds = new Set(getBestSellerProducts().map(p => p.id));
+  container.innerHTML = cats.map(cat => {
+    const catList = list.filter(p => p.categoria === cat);
+    return `
     <section class="catalog-section">
       <h2 class="section-title">${cat}</h2>
       <div class="products-grid">
-        ${list.filter(p => p.categoria === cat).map((p, i) => renderCard(p, i)).join('')}
+        ${catList.map((p, i) => renderCard(p, i, bestsellerIds.has(p.id))).join('')}
       </div>
     </section>
-  `).join('');
+  `;
+  }).join('');
   if (silent) {
     container.querySelectorAll('.product-card, .section-title').forEach(el => el.classList.add('visible'));
   } else {
@@ -148,17 +161,23 @@ function renderCatalog(silent) {
 }
 
 // ─── Destacados / Carrusel ─────────────────────────────────────────────────────
+function getBestSellerProducts() {
+  const active = allProducts.filter(p => p.activo !== false);
+  const byCode = new Map(active.map(p => [String(p.id).toLowerCase(), p]));
+  const matched = [];
+  bestSellerCodes.forEach(code => {
+    const p = byCode.get(String(code).toLowerCase());
+    if (p && !matched.includes(p)) matched.push(p);
+  });
+  return matched;
+}
+
 function renderFeatured(silent) {
   const track = document.getElementById('featuredCarousel');
   if (!track || allProducts.length === 0) return;
 
   const active = allProducts.filter(p => p.activo !== false);
-  const byCode = new Map(active.map(p => [String(p.id).toLowerCase(), p]));
-  const featured = [];
-  bestSellerCodes.forEach(code => {
-    const p = byCode.get(String(code).toLowerCase());
-    if (p && !featured.includes(p)) featured.push(p);
-  });
+  const featured = getBestSellerProducts();
   for (const p of active) {
     if (featured.length >= 8) break;
     if (!featured.includes(p)) featured.push(p);
@@ -256,31 +275,32 @@ function driveImgUrl(url) {
   return url;
 }
 
-function renderCard(p, idx = 0) {
+function getStockBadgeHtml(stockCajas) {
+  if (stockCajas == null) return '';
+  if (stockCajas === 0) return '<span class="stock-badge stock-out">⚪ Agotado</span>';
+  if (stockCajas <= 5) return `<span class="stock-badge stock-low">🔥 Quedan ${stockCajas}</span>`;
+  return '<span class="stock-badge stock-ok">🟢 En stock</span>';
+}
+
+function renderCard(p, idx = 0, bestseller = false) {
   const safeNombre = p.nombre.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+  const safeDescripcion = (p.descripcion || '').replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, ' ');
   const imgUrl = driveImgUrl(p.imagenUrl);
+  const stockArg = p.stockCajas != null ? p.stockCajas : 'null';
 
   const imgHtml = imgUrl
     ? `<img class="product-img" src="${imgUrl}" alt="${safeNombre}" loading="lazy"
             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
-            onclick="event.stopPropagation();openLightbox('${imgUrl}','${safeNombre}')">`
+            onclick="event.stopPropagation();openLightbox('${imgUrl}','${safeNombre}','${safeDescripcion}','${p.cantidad}','${p.tipoUnidad}',${Number(p.precio)},${stockArg})">`
     : '';
 
   const placeholder = `<div class="product-img-placeholder" ${p.imagenUrl ? 'style="display:none"' : ''}></div>`;
 
-  let stockBadge = '';
-  if (p.stockCajas != null) {
-    if (p.stockCajas === 0) {
-      stockBadge = `<span class="stock-badge stock-out">⚪ Agotado</span>`;
-    } else if (p.stockCajas <= 5) {
-      stockBadge = `<span class="stock-badge stock-low">🔥 Quedan ${p.stockCajas}</span>`;
-    } else {
-      stockBadge = `<span class="stock-badge stock-ok">🟢 En stock</span>`;
-    }
-  }
+  const stockBadge = getStockBadgeHtml(p.stockCajas);
 
   return `
     <article class="product-card" id="card-${p.id}" style="animation-delay:${idx * 0.05}s">
+      ${bestseller ? '<span class="bestseller-badge">🔥 Más vendido</span>' : ''}
       <div class="product-img-wrap">
         ${imgHtml}
         ${placeholder}
@@ -493,9 +513,14 @@ function removeFromCart(id) {
 
 function renderCartBadge() {
   const badge = document.getElementById('cartBadge');
+  const badgeBottom = document.getElementById('cartBadgeBottom');
   const count = cartCount();
   badge.textContent = count;
   badge.classList.toggle('hidden', count === 0);
+  if (badgeBottom) {
+    badgeBottom.textContent = count;
+    badgeBottom.classList.toggle('hidden', count === 0);
+  }
   if (count > lastCartCount) {
     badge.classList.remove('bump');
     void badge.offsetWidth;
@@ -604,10 +629,21 @@ function showToast(msg, type = '') {
 }
 
 // ─── Lightbox de foto ───────────────────────────────────────────────────────
-function openLightbox(url, alt) {
+function openLightbox(url, alt, descripcion, cantidad, tipoUnidad, precio, stockCajas) {
   const img = document.getElementById('lightboxImg');
   img.src = url;
   img.alt = alt || '';
+  document.getElementById('lightboxCaptionName').textContent = alt || '';
+  document.getElementById('lightboxCaptionDesc').textContent = descripcion || '';
+
+  const qtyText = cantidad ? `${cantidad} ${tipoUnidad || ''}`.trim() : '';
+  const priceText = precio != null && !isNaN(precio) ? '$' + Number(precio).toLocaleString('es-CL') : '';
+  document.getElementById('lightboxCaptionMeta').innerHTML = `
+    ${qtyText ? `<span class="lightbox-caption-qty">${qtyText}</span>` : ''}
+    ${priceText ? `<span class="lightbox-caption-price">${priceText}</span>` : ''}
+  `;
+  document.getElementById('lightboxCaptionStock').innerHTML = getStockBadgeHtml(stockCajas);
+
   openOverlay(document.getElementById('imageLightbox'));
 }
 
