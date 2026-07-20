@@ -161,7 +161,7 @@ function renderCatalog(silent) {
 }
 
 // ─── Destacados / Carrusel ─────────────────────────────────────────────────────
-function getBestSellerProducts() {
+function getBestSellerProducts(limit = 10) {
   const active = allProducts.filter(p => p.activo !== false);
   const byCode = new Map(active.map(p => [String(p.id).toLowerCase(), p]));
   const matched = [];
@@ -169,7 +169,7 @@ function getBestSellerProducts() {
     const p = byCode.get(String(code).toLowerCase());
     if (p && !matched.includes(p)) matched.push(p);
   });
-  return matched;
+  return matched.slice(0, limit);
 }
 
 function renderFeatured(silent) {
