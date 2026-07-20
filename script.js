@@ -277,7 +277,7 @@ function driveImgUrl(url) {
 
 function getStockBadgeHtml(stockCajas) {
   if (stockCajas == null) return '';
-  if (stockCajas === 0) return '<span class="stock-badge stock-out">⚪ Agotado</span>';
+  if (stockCajas === 0) return '<span class="stock-badge stock-out">🔴 Agotado</span>';
   if (stockCajas <= 5) return `<span class="stock-badge stock-low">🔥 Quedan ${stockCajas}</span>`;
   return '<span class="stock-badge stock-ok">🟢 En stock</span>';
 }

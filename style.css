@@ -670,7 +670,7 @@ main {
 }
 .stock-ok  { background: var(--green-pale); color: var(--green-dark); }
 .stock-low { background: #FFF1E0; color: #8a5200; }
-.stock-out { background: rgba(43,33,48,.06); color: var(--text-mid); }
+.stock-out { background: #FDECEA; color: #c62828; }
 
 .card-qty-stepper {
   display: flex;
