@@ -313,6 +313,11 @@ function renderCard(p, idx = 0, bestseller = false) {
           <span class="product-price">$${Number(p.precio).toLocaleString('es-CL')}</span>
         </div>
         ${stockBadge}
+        ${p.stockCajas === 0 ? `
+        <button class="btn-notify" onclick="event.stopPropagation();requestRestockNotice('${p.id}','${safeNombre}')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          Avísame cuando haya stock
+        </button>` : `
         <div class="card-qty-stepper">
           <button class="cart-qty-btn" onclick="event.stopPropagation();changeCardQty(this,-1)" aria-label="Restar unidad">−</button>
           <span class="card-qty-value">1</span>
@@ -321,7 +326,7 @@ function renderCard(p, idx = 0, bestseller = false) {
         <button class="btn-add" onclick="event.stopPropagation();addToCart('${p.id}', this)">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
           Lo quiero
-        </button>
+        </button>`}
       </div>
     </article>`;
 }
@@ -587,6 +592,12 @@ function sendCartToWhatsApp() {
   if (cart.length === 0) return;
   const lines = cart.map(item => `- ${item.cantidad}x ${item.nombre} ($${item.precio.toLocaleString('es-CL')} c/u)`);
   const text = `Hola! Quiero hacer este pedido:\n${lines.join('\n')}\n\nTotal: $${cartTotal().toLocaleString('es-CL')}`;
+  window.open('https://wa.me/56949809843?text=' + encodeURIComponent(text), '_blank');
+}
+
+function requestRestockNotice(id, nombre) {
+  fetch(API_URL + '?interes=1&codigo=' + encodeURIComponent(id) + '&nombre=' + encodeURIComponent(nombre)).catch(() => {});
+  const text = `Hola! Quiero saber cuándo vuelve a haber stock de ${nombre}.`;
   window.open('https://wa.me/56949809843?text=' + encodeURIComponent(text), '_blank');
 }
 

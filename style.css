@@ -700,6 +700,26 @@ main {
 }
 .btn-add:active { transform: scale(.97); }
 
+.btn-notify {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  margin-top: 10px;
+  background: transparent;
+  color: var(--purple);
+  border: 2px solid var(--purple-pale);
+  padding: 9px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: 'Lato', sans-serif;
+  font-weight: 700;
+  font-size: .82rem;
+  transition: var(--ease);
+}
+.btn-notify:active { transform: scale(.97); }
+
 /* ── Loading ─────────────────────────────────────────────────────────────────── */
 .loading-spinner {
   display: flex;
@@ -1190,6 +1210,7 @@ main {
   .product-card.visible:hover .btn-add { filter: brightness(1.05); }
   .whatsapp-float:hover { transform: scale(1.1); box-shadow: 0 8px 28px rgba(37,211,102,.55); }
   .btn-primary:hover { background: var(--purple-dark); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(62,39,96,.25); }
+  .btn-notify:hover { background: var(--purple-pale); }
 }
 
 /* ── Mobile catálogo: header, cards, espaciado (hasta 768px) ─────────────────── */
@@ -1236,6 +1257,7 @@ main {
   .stock-badge { margin-top: 6px; }
   .card-qty-stepper { margin-top: 8px; }
   .btn-add { margin-top: 8px; padding: 12px 9px; }
+  .btn-notify { margin-top: 8px; padding: 10px 9px; }
 
   /* 7. Botón WhatsApp flotante: safe-area y menos intrusivo */
   .whatsapp-float {
@@ -1261,6 +1283,8 @@ main {
   .cart-qty-btn { width: 30px; height: 30px; font-size: .8rem; }
   .btn-add { font-size: .72rem; padding: 11px 8px; gap: 4px; }
   .btn-add svg { width: 12px; height: 12px; }
+  .btn-notify { font-size: .66rem; padding: 9px 6px; gap: 4px; }
+  .btn-notify svg { width: 12px; height: 12px; }
 }
 
 /* ── 10. Carrito como bottom-sheet (mobile) ──────────────────────────────────── */
