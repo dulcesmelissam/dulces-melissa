@@ -128,7 +128,7 @@ function renderCatalog(silent) {
     ? allProducts
     : allProducts.filter(p => p.categoria === activeFilter);
 
-  let list = visible.filter(p => p.activo !== false && p.stockCajas !== 0 && p.estado !== 'AGOTADO');
+  let list = visible.filter(p => p.activo !== false);
 
   if (searchQuery) {
     list = list.filter(p => p.nombre.toLowerCase().includes(searchQuery));
